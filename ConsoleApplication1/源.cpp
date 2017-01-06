@@ -14,8 +14,8 @@ job memory[maxsize];
 
 void FIFO(int mmax, int duilie)//置换时置换先进的
 {
-	int j = 0,flag=0,cout=0,time=0,tmp,tmptime;
-	for(int j=0;j<duilie;j++) {
+	int j = 0, flag = 0, cout = 0, time = 0, tmp, tmptime;
+	for (int j = 0; j<duilie; j++) {
 		flag = 0;
 		time++;
 		int mintimein = maxsize;
