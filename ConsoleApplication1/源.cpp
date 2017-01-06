@@ -62,6 +62,7 @@ void FIFO(int mmax, int duilie)//置换时置换先进的
 	printf("\n");
 	printf("%d\n", cout);
 }
+
 bool has(int tmp,int mmax) {//看看内存中有没有这个页面
 	for (int n = 0; n < mmax; n++) {
 		if (memory[n].no == tmp) {
@@ -91,6 +92,7 @@ void OPT(int mmax, int duilie)//置换时置换先进的
 				}
 			}
 		}
+
 		if (flag == 0) {
 			for (int x = 0; x < maxsize; x++) {
 				tnext[x] = maxsize;
@@ -107,10 +109,8 @@ void OPT(int mmax, int duilie)//置换时置换先进的
 
 			int longnext = 0,tmpcout=0,tmpno[maxsize];
 			for (int m = 0; m < maxsize; m++) {
-				if (has(m,mmax)) {
-					if (tnext[m] == maxsize) {//找到内存中有多少是接下去不再运行的
+				if (tnext[m] == maxsize&&has(m, mmax)) {//找到内存中有多少是接下去不再运行的
 						tmpno[tmpcout++]=m;//记录下页面号
-					}
 				}
 				if (tnext[m] > longnext&&has(m,mmax)) {//找到队列里最久未用的那个
 					longnext = tnext[m];
@@ -132,7 +132,7 @@ void OPT(int mmax, int duilie)//置换时置换先进的
 						}
 					}
 					if (memory[s].timein < min) {
-						min = memory[tmpno[r]].timein;
+						min = memory[s].timein;
 						tmpx = s;
 					}
 				}
@@ -169,11 +169,11 @@ void LRU(int mmax, int duilie) {
 		int mintimein = maxsize;
 		for (int i = 0; i < mmax; i++) {
 			if (queue[j] == memory[i].no) {//如果内存中已经有了
-				int temp = memory[i].no;
-				for (int r = i; r < mmax - 1; r++) {//将后面的向前推
+				int temp = memory[i].no,r;
+				for (r = i; memory[r + 1].no!=-1; r++) {//将后面的向前推
 					memory[r].no = memory[r + 1].no;
 				}
-				memory[mmax-1].no = temp;
+				memory[r].no = temp;
 				flag = 1;
 				break;
 			}
