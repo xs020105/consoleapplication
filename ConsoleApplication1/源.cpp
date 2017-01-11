@@ -3,236 +3,146 @@
 #include<string.h>
 #define maxsize 200		//定义存储数据最大值
 
-typedef struct node
+int wait[maxsize];
+int cmp(const void *a, const void *b){
+	return *(int *)a - *(int *)b; 
+}
+void FCFS(int first, int final)//置换时置换先进的
 {
-	int timein = maxsize;//进入时间
-	int no = -1;//页面序列
-	int nextuse = 0;
-}job;
-int queue[maxsize];
-job memory[maxsize];
-
-void FIFO(int mmax, int duilie)//置换时置换先进的
-{
-	int j = 0, flag = 0, cout = 0, time = 0, tmp, tmptime;
-	for (int j = 0; j<duilie; j++) {
-		flag = 0;
-		time++;
-		int mintimein = maxsize;
-		for (int i = 0; i < mmax; i++) {
-			if (queue[j] == memory[i].no) {//如果内存中已经有了
-				flag = 1;
-				break;
-			}
-			else {
-				if (memory[i].no == -1) {//如果还没有占用 
-					memory[i].no = queue[j];
-					memory[i].timein = time;
-					cout++;
-					flag = 2;
-					break;
-				}
-				else {
-					if (memory[i].timein < mintimein) {//如果是先进的
-						mintimein = memory[i].timein;
-						tmp = i;
-					}
-				}
-			}
+	printf("%d,", first); int tmp = first, cout = 0;
+	for (int i = 0; i < final; i++) {
+		printf("%d", wait[i]);
+		cout += abs(wait[i] - tmp);
+		tmp = wait[i];
+		if (i < final - 1) {
+			printf(",");
 		}
-		if (flag == 0) {
-			memory[tmp].no = queue[j];
-			memory[tmp].timein = time;
-			cout++;
+		else {
+			printf("\n");
 		}
-		for (int z = 0; z < mmax; z++) {
-			if (memory[z].no != -1) {
-				printf("%d,", memory[z].no);
-			}
-			else {
-				printf("-,");
-			}
-		}
-		if (flag == 2)
-			flag = 0;
-		printf("%d", flag);
-		if (j < duilie - 1)
-			printf("/");
 	}
-	printf("\n");
 	printf("%d\n", cout);
 }
 
-bool has(int tmp,int mmax) {//看看内存中有没有这个页面
-	for (int n = 0; n < mmax; n++) {
-		if (memory[n].no == tmp) {
-			return true;
-		}
+int SSTF(int first, int final) {
+	int ans = 0;
+	int now = 0, next, min;
+	int have[maxsize];
+	memset(have, 0, sizeof(have));
+	have[0] = 1;
+	printf("%d", first);
+	for (int i = final; i >= 0; i--) {
+		wait[i + 1] = wait[i];
 	}
-	return false;
-}
-void OPT(int mmax, int duilie)//置换时置换先进的
-{
-	int j = 0, flag = 0, cout = 0, time = 0, tmp, tmpi,tnext[maxsize];
-	for (int j = 0; j<duilie; j++) {
-		flag = 0;
-		time++;
-		for (int i = 0; i < mmax; i++) {
-			if (queue[j] == memory[i].no) {//如果内存中已经有了
-				flag = 1;
-				break;
-			}
-			else {
-				if (memory[i].no == -1) {//如果还没有占用 
-					memory[i].no = queue[j];
-					memory[i].timein = time;
-					cout++;
-					flag = 2;
-					break;
-				}
+	wait[0] = first;
+	for (int i = 2; i<final + 2; i++) {
+		min = 999999;
+		next = 0;
+		for (int j = 0; j < final + 1; j++) {
+			if (have[j] == 1) continue;//如果已经跑过了
+			if (min>abs(wait[j] - wait[now])) {//如果没跑过而且是最小值
+				min = abs(wait[j] - wait[now]);
+				next = j;
 			}
 		}
-
-		if (flag == 0) {
-			for (int x = 0; x < maxsize; x++) {
-				tnext[x] = maxsize;
-			}
-			for (int p = time; p < duilie; p++) {
-				for (int q = 0; q < mmax; q++) {
-					if (memory[q].no == queue[p]) {//如果在后边队列中找到了内存中的页面，那就记录下一次的时间
-						if (p < tnext[memory[q].no]) {
-							tnext[memory[q].no] = p;//tnext中记录了页面下一次最近调用的时间
-						}
-					}
-				}
-			}
-
-			int longnext = 0,tmpcout=0,tmpno[maxsize];
-			for (int m = 0; m < maxsize; m++) {
-				if (tnext[m] == maxsize&&has(m, mmax)) {//找到内存中有多少是接下去不再运行的
-						tmpno[tmpcout++]=m;//记录下页面号
-				}
-				if (tnext[m] > longnext&&has(m,mmax)) {//找到队列里最久未用的那个
-					longnext = tnext[m];
-					tmpi = m;//tmpi记录了应该要替换的页面号
-				}
-			}
-			for (int n = 0; n < mmax; n++) {
-				if (memory[n].no == tmpi) {//通过页面号找到他在内存中的位置
-					tmp = n;
-					break;
-				}
-			}
-			int min = 0x7f,tmpx=0,s=0;
-			if (tmpcout >= 1) {//如果至少有两个是队列里不再出现的，那么就要fifo了
-				for (int r = 0; r < tmpcout; r++) {
-					for (s = 0; s < mmax; s++) {
-						if (tmpno[r] == memory[s].no) {//通过页面号找到下标
-							break;
-						}
-					}
-					if (memory[s].timein < min) {
-						min = memory[s].timein;
-						tmpx = s;
-					}
-				}
-				tmp = tmpx;
-			}
-			memory[tmp].no = queue[j];
-			memory[tmp].timein = time;
-			cout++;
-		}
-		for (int z = 0; z < mmax; z++) {
-			if (memory[z].no != -1) {
-				printf("%d,", memory[z].no);
-			}
-			else {
-				printf("-,");
-			}
-		}
-		if (flag == 2)
-			flag = 0;
-		printf("%d", flag);
-		if (j < duilie - 1)
-			printf("/");
-
+		have[next] = 1;
+		ans += abs(wait[now] - wait[next]);
+		printf(",%d", wait[next]);
+		now = next;
 	}
-	printf("\n");
-	printf("%d\n", cout);
+	printf("\n%d\n", ans);
+	return 0;
 }
 
-void LRU(int mmax, int duilie) {
-	int j = 0, flag = 0, cout = 0, time = 0, tmp, tmptime;
-	for (int j = 0; j<duilie; j++) {
-		flag = 0;
-		time++;
-		int mintimein = maxsize;
-		for (int i = 0; i < mmax; i++) {
-			if (queue[j] == memory[i].no) {//如果内存中已经有了
-				int temp = memory[i].no,r;
-				for (r = i; memory[r + 1].no!=-1; r++) {//将后面的向前推
-					memory[r].no = memory[r + 1].no;
-				}
-				memory[r].no = temp;
-				flag = 1;
-				break;
-			}
-			else {
-				if (memory[i].no == -1) {//如果还没有占用 
-					memory[i].no = queue[j];
-					memory[i].timein = time;
-					cout++;
-					flag = 2;
-					break;
-				}
-			}
-		}
 
-		if (flag == 0) {//如果找遍内存都还没有
-			for (int r = 0; r < mmax-1; r++) {
-				memory[r].no = memory[r + 1].no;
-			}
-			memory[mmax-1].no = queue[j];//就把第一个替换掉，新加的放在最后一个
-			cout++;
-		}
-		for (int z = 0; z < mmax; z++) {
-			if (memory[z].no != -1) {
-				printf("%d,", memory[z].no);
-			}
-			else {
-				printf("-,");
-			}
-		}
-		if (flag == 2)
-			flag = 0;
-		printf("%d", flag);
-		if (j < duilie - 1)
-			printf("/");
+int SCAN(int first, int final, int dir) {
+	printf("%d", first);
+	for (int i = final; i >= 0; i--) {
+		wait[i + 1] = wait[i];
 	}
-	printf("\n");
-	printf("%d\n", cout);
+	wait[0] = first;
+	qsort(wait, final + 1, sizeof(wait[0]), cmp);
+	int cout = 0;
+	int have[maxsize];
+	memset(have, 0, sizeof(have));
+	int z;//用于找到first在哪里
+	for (z = 0; z < final + 1; z++) {
+		if (wait[z] == first)
+			break;
+	}
+	have[z] = 1; int i = 0, last = first;
+	for (int j = z; j <= final + 1 && j >= 0; j += dir) {//从z开始按照指定的方向跑
+		if (j == final + 1)dir = -1;//考虑两种特殊情况
+		if (j == 0)dir = 1;
+		if (have[j] == 1 || wait[j] == -1) continue;//如果已经跑过了
+		i++;
+		have[j] = 1;
+		printf(",%d", wait[j]);
+		cout += abs(wait[j] - last);
+		last = wait[j];
+		if (i == final)
+			break;
+	}
+	printf("\n%d\n", cout);
+	return 0;
+}
 
+int CSCAN(int first, int final, int dir) {
+	printf("%d", first);
+	for (int i = final; i >= 0; i--) {
+		wait[i + 1] = wait[i];
+	}
+	wait[0] = first;
+	qsort(wait, final + 1, sizeof(wait[0]), cmp);
+	int cout = 0;
+	int have[maxsize];
+	memset(have, 0, sizeof(have));
+	int z;//用于找到first在哪里
+	for (z = 0; z < final + 1; z++) {
+		if (wait[z] == first)
+			break;
+	}
+	have[z] = 1; int i = 0, last = first;
+	for (int j = z;; j += dir) {//从z开始按照指定的方向跑
+		if (wait[j] == -1)j=0;//考虑两种特殊情况
+		if (j == -1)j=final;
+		if (have[j] == 1) continue;//如果已经跑过了
+		i++;
+		have[j] = 1;
+		printf(",%d", wait[j]);
+		cout += abs(wait[j] - last);
+		last = wait[j];
+		if (i == final) {
+			break;
+		}
+	}
+	printf("\n%d\n", cout);
+	return 0;
 }
 
 int main() {
-	memset(queue, -2, sizeof(queue));
-	int n, i = 0,kuaishu;
+	memset(wait, -1, sizeof(wait));
+	int n, i = 0, first, direction;
 	scanf("%d\n", &n);
-	scanf("%d\n", &kuaishu);
-	while (1) {
-		scanf("%d", &queue[i++]);
-		if (getchar() == '\n')
-			break;
+	scanf("%d\n", &first);
+	scanf("%d\n", &direction);
+	if (direction == 0)
+		direction = -1;
+	while (~scanf("%d,", &wait[i])) {
+		i++;
 	}
 	switch (n) {
 	case 1:
-		OPT(kuaishu, i);
+		FCFS(first, i);
 		break;
 	case 2:
-		FIFO(kuaishu, i);
+		SSTF(first, i);
 		break;
 	case 3:
-		LRU(kuaishu, i);
+		SCAN(first, i, direction);
+		break;
+	case 4:
+		CSCAN(first, i, direction);
 		break;
 	default:
 		break;
